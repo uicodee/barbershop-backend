@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response
-from fastapi.security import OAuth2PasswordRequestForm
+from typing import Optional
+
+from fastapi import APIRouter, Depends, Response, Cookie, HTTPException, status
 
 from app import dto
 from app.api import schems
@@ -11,50 +12,73 @@ router = APIRouter()
 
 
 @router.post(
-    path="/login",
-    description="Login user",
-    response_model=dto.Token
+    path="/superuser/login",
+    description="Login superuser",
+    response_model=dto.Token,
+    tags=["Superuser Authentication"],
 )
-async def login_user(
+async def login_superuser(
         response: Response,
-        form_data: OAuth2PasswordRequestForm = Depends(),
+        credentials: schems.LoginSuperuser,
         dao: HolderDao = Depends(dao_provider),
         settings: Settings = Depends(get_settings),
 ) -> dto.Token:
     auth = AuthProvider(settings=settings)
-    user = await auth.authenticate_user(
-        form_data.username,
-        form_data.password,
+    superuser = await auth.authenticate_superuser(
+        credentials.username,
+        credentials.password,
         dao
     )
-    token = auth.create_user_token(
-        user=user
-    )
-    response.set_cookie(key="accessToken", value=token.access_token, httponly=True)
+    token = auth.create_token_pairs(sub=superuser.username)
+    auth.set_refresh_cookie(response=response, refresh_token=token.refresh_token)
     return token
 
 
 @router.post(
-    path="/register",
-    description="Register user",
-    response_model=dto.User
+    path="/employee/login",
+    description="Login employee",
+    response_model=dto.Token,
+    tags=["Employee Authentication"],
 )
-async def register_user(
-        user: schems.RegisterUser,
+async def login_employee(
+        response: Response,
+        credentials: schems.LoginEmployee,
         dao: HolderDao = Depends(dao_provider),
         settings: Settings = Depends(get_settings),
-) -> dto.User:
-    current_user = await dao.user.get_user(email=user.email)
-    if current_user is not None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User already registered"
-        )
+) -> dto.Token:
     auth = AuthProvider(settings=settings)
-    user = await dao.user.add_user(
-        firstname=user.firstname,
-        lastname=user.lastname,
-        email=user.email,
-        password=auth.get_password_hash(password=user.password)
+    employee = await auth.authenticate_employee(
+        credentials.email,
+        credentials.password,
+        dao
     )
-    return user
+    token = auth.create_token_pairs(sub=employee.email)
+    auth.set_refresh_cookie(response=response, refresh_token=token.refresh_token)
+    return token
+
+
+@router.post(
+    path="/refresh",
+    description="Refresh access token",
+    response_model=dto.Token,
+    tags=["Token Management"],
+)
+async def refresh_current_token(
+        response: Response,
+        refresh_token: Optional[str] = Cookie(None, alias="refreshToken"),
+        dao: HolderDao = Depends(dao_provider),
+        settings: Settings = Depends(get_settings),
+) -> dto.Token:
+    auth = AuthProvider(settings=settings)
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token missing",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    new_token = await auth.refresh_access_token(
+        refresh_token=refresh_token,
+        dao=dao
+    )
+    auth.set_refresh_cookie(response=response, refresh_token=new_token.refresh_token)
+    return new_token
