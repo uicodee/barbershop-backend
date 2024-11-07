@@ -4,11 +4,13 @@ from pydantic import BaseModel, Field
 class Employee(BaseModel):
     full_name: str = Field(
         title="Fullname",
-        description="User Fullname"
+        description="User Fullname",
+        alias="fullName"
     )
     branch_id: int = Field(
         title="Branch",
-        description="Branch ID"
+        description="Branch ID",
+        alias="branchId"
     )
 
 
