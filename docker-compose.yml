@@ -4,6 +4,6 @@ services:
     build: .
     command: poetry run python -m app.api
     restart: always
-    container_name: "api"
+    container_name: "barbershop-api"
     ports:
-      - "8000:15400"
+      - "7999:15400"
