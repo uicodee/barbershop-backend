@@ -3,7 +3,8 @@ from pydantic import PositiveInt
 
 from app import dto
 from app.api import schems
-from app.api.dependencies import dao_provider
+from app.api.dependencies import dao_provider, AuthProvider, get_settings, get_superuser
+from app.config import Settings
 from app.infrastructure.database import HolderDao
 
 router = APIRouter(prefix="/employee")
@@ -15,11 +16,19 @@ router = APIRouter(prefix="/employee")
     response_model=dto.Employee,
 )
 async def create_employee(
-        employee: schems.Employee,
-        dao: HolderDao = Depends(dao_provider)
+        employee: schems.RegisterEmployee,
+        dao: HolderDao = Depends(dao_provider),
+        settings: Settings = Depends(get_settings)
 ) -> dto.Employee:
+    auth = AuthProvider(settings=settings)
+    if await dao.employee.get_employee(email=employee.email) is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Employee already exists"
+        )
     return await dao.employee.add_employee(
-        employee=employee
+        employee=employee,
+        password=auth.get_password_hash(password=employee.password)
     )
 
 
@@ -49,23 +58,23 @@ async def get_employee(
     return employee
 
 
-@router.put(
-    path="/{employee_id}",
-    description="Update employee",
-    response_model=dto.Employee,
-)
-async def update_employee(
-        employee: schems.Employee,
-        employee_id: PositiveInt = Path(),
-        dao: HolderDao = Depends(dao_provider)
-) -> dto.Employee:
-    current_employee = await dao.employee.get_one(employee_id=employee_id)
-    if current_employee is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
-    return await dao.employee.update_employee(
-        employee_id=employee_id,
-        employee=employee
-    )
+# @router.put(
+#     path="/{employee_id}",
+#     description="Update employee",
+#     response_model=dto.Employee,
+# )
+# async def update_employee(
+#         employee: schems.Employee,
+#         employee_id: PositiveInt = Path(),
+#         dao: HolderDao = Depends(dao_provider)
+# ) -> dto.Employee:
+#     current_employee = await dao.employee.get_one(employee_id=employee_id)
+#     if current_employee is None:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
+#     return await dao.employee.update_employee(
+#         employee_id=employee_id,
+#         employee=employee
+#     )
 
 
 @router.delete(

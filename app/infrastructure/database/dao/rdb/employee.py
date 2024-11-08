@@ -14,12 +14,19 @@ class EmployeeDAO(BaseDAO[Employee]):
 
     async def add_employee(
             self,
-            employee: schems.Employee
+            employee: schems.Employee,
+            password: str
     ) -> dto.Employee:
-        employee = Employee(**employee.dict())
+        employee = Employee(
+            full_name=employee.full_name,
+            email=employee.email,
+            password=password,
+            branch_id=employee.branch_id
+        )
         self.session.add(employee)
         await self.session.commit()
-        return dto.Employee.from_orm(employee)
+        result = await self.session.execute(select(Employee).where(Employee.id == employee.id))
+        return dto.Employee.from_orm(result.scalar())
 
     async def get_one(
             self,
