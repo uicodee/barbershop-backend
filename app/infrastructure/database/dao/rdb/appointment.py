@@ -22,7 +22,8 @@ class AppointmentDAO(BaseDAO[Appointment]):
     ) -> dto.Appointment:
         appointment = Appointment(
             client_id=appointment.client_id,
-            appointment_date=datetime.strptime(appointment.appointment_date, "%d.%m.%Y %H:%M").replace(tzinfo=timezone.utc),
+            appointment_date=datetime.strptime(appointment.appointment_date, "%d.%m.%Y %H:%M").replace(
+                tzinfo=timezone.utc),
             branch_id=branch_id,
             employee_id=employee_id
         )
@@ -63,6 +64,27 @@ class AppointmentDAO(BaseDAO[Appointment]):
         ))
         adapter = TypeAdapter(list[dto.Appointment])
         return adapter.validate_python(result.scalars().all())
+
+    async def update_appointment_status(
+            self,
+            employee_id: int,
+            branch_id: int,
+            appointment_id: int,
+            status: dto.AppointmentStatus
+    ) -> dto.Appointment:
+        result = await self.session.execute(
+            update(Appointment).where(
+                Appointment.id == appointment_id,
+                Appointment.employee_id == employee_id,
+                Appointment.branch_id == branch_id,
+            )
+            .values(
+                status=status
+            )
+            .returning(Appointment)
+        )
+        await self.session.commit()
+        return dto.Appointment.model_validate(result.scalar())
 
     async def update_appointment(
             self,

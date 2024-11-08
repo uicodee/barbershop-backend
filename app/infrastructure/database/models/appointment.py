@@ -20,6 +20,7 @@ class Appointment(BaseModel):
     employee_id: Mapped[int] = mapped_column(ForeignKey("employee.id", ondelete="CASCADE"))
 
     appointment_date: Mapped[datetime] = mapped_column(DateTime(True))
+
     status: Mapped[dto.AppointmentStatus] = mapped_column(
         Enum(dto.AppointmentStatus),
         default=dto.AppointmentStatus.SCHEDULED

@@ -67,7 +67,7 @@ async def get_appointments(
 
 
 @router.get(
-    path="/{client_id}",
+    path="/client/{client_id}",
     description="Get client appointments",
     response_model=list[dto.Appointment],
 )
@@ -92,27 +92,27 @@ async def get_client_appointments(
     )
 
 
-# @router.get(
-#     path="/{appointment_id}",
-#     description="Get appointment",
-#     response_model=dto.Appointment
-# )
-# async def get_appointment(
-#         appointment_id: PositiveInt = Path(),
-#         employee: dto.Employee = Depends(get_employee),
-#         dao: HolderDao = Depends(dao_provider)
-# ) -> dto.Appointment:
-#     appointment = await dao.appointment.get_one(
-#         appointment_id=appointment_id,
-#         branch_id=employee.branch.id,
-#         employee_id=employee.id
-#     )
-#     if appointment is None:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND,
-#             detail="Appointment not found",
-#         )
-#     return appointment
+@router.get(
+    path="/{appointment_id}",
+    description="Get appointment",
+    response_model=dto.Appointment
+)
+async def get_appointment(
+        appointment_id: PositiveInt = Path(),
+        employee: dto.Employee = Depends(get_employee),
+        dao: HolderDao = Depends(dao_provider)
+) -> dto.Appointment:
+    appointment = await dao.appointment.get_one(
+        appointment_id=appointment_id,
+        branch_id=employee.branch.id,
+        employee_id=employee.id
+    )
+    if appointment is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Appointment not found",
+        )
+    return appointment
 
 
 @router.put(
@@ -141,6 +141,24 @@ async def update_appointment(
         branch_id=employee.branch.id,
         appointment_id=appointment_id,
         appointment=appointment,
+    )
+
+
+@router.put(
+    path="/{appointment_id}/early_arrival",
+    description="Client early arrival",
+    response_model=dto.Appointment,
+)
+async def update_appointment(
+        appointment_id: PositiveInt = Path(),
+        employee: dto.Employee = Depends(get_employee),
+        dao: HolderDao = Depends(dao_provider)
+) -> dto.Appointment:
+    return await dao.appointment.update_appointment_status(
+        appointment_id=appointment_id,
+        employee_id=employee.id,
+        branch_id=employee.branch.id,
+        status=dto.AppointmentStatus.ARRIVED_EARLY
     )
 
 
