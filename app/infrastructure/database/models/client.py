@@ -1,5 +1,4 @@
-from typing import List, TYPE_CHECKING
-
+from typing import TYPE_CHECKING
 from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -10,7 +9,6 @@ if TYPE_CHECKING:
 
 
 class Client(BaseModel):
-
     __tablename__ = "client"
 
     first_name: Mapped[str] = mapped_column(String)
@@ -20,4 +18,16 @@ class Client(BaseModel):
     branch_id: Mapped[int] = mapped_column(ForeignKey("branch.id", ondelete="CASCADE"))
     employee_id: Mapped[int] = mapped_column(ForeignKey("employee.id", ondelete="CASCADE"))
 
-    appointments: Mapped[List["Appointment"]] = relationship(back_populates="client", lazy="selectin")
+    next_appointment_id: Mapped[int] = mapped_column(
+        ForeignKey("appointment.id", ondelete="SET NULL"),
+        nullable=True
+    )
+
+    # Modify this relationship to specify it's a one-to-one
+    next_appointment: Mapped["Appointment"] = relationship(
+        "Appointment",
+        foreign_keys="Client.next_appointment_id",
+        uselist=False,  # This makes it one-to-one
+        post_update=True,  # This helps prevent circular dependency issues
+        lazy="selectin"
+    )

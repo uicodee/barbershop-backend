@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pytz import timezone
 from apscheduler_di import ContextSchedulerDecorator
-from fastapi import APIRouter, Depends, Path, HTTPException, status
+from fastapi import APIRouter, Depends, Path, HTTPException, status, Query
 from pydantic import PositiveInt
 
 from app import dto
@@ -145,12 +145,13 @@ async def update_appointment(
 
 
 @router.put(
-    path="/{appointment_id}/early_arrival",
+    path="/{appointment_id}/status",
     description="Client early arrival",
     response_model=dto.Appointment,
 )
-async def update_appointment(
+async def change_status(
         appointment_id: PositiveInt = Path(),
+        status: dto.AppointmentStatus = Query(),
         employee: dto.Employee = Depends(get_employee),
         dao: HolderDao = Depends(dao_provider)
 ) -> dto.Appointment:
@@ -158,7 +159,7 @@ async def update_appointment(
         appointment_id=appointment_id,
         employee_id=employee.id,
         branch_id=employee.branch.id,
-        status=dto.AppointmentStatus.ARRIVED_EARLY
+        status=status
     )
 
 

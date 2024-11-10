@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from sqlalchemy import ForeignKey, DateTime, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
@@ -12,7 +11,6 @@ if TYPE_CHECKING:
 
 
 class Appointment(BaseModel):
-
     __tablename__ = "appointment"
 
     client_id: Mapped[int] = mapped_column(ForeignKey("client.id", ondelete="CASCADE"))
@@ -25,6 +23,9 @@ class Appointment(BaseModel):
         Enum(dto.AppointmentStatus),
         default=dto.AppointmentStatus.SCHEDULED
     )
-    # next_sms_date: Mapped[datetime] = mapped_column(DateTime)
 
-    client: Mapped["Client"] = relationship(back_populates="appointments")
+    # Remove the back_populates here since we'll handle it from the Client side
+    client: Mapped["Client"] = relationship(
+        "Client",
+        foreign_keys="Appointment.client_id"
+    )
