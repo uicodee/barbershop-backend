@@ -44,11 +44,17 @@ async def create_appointment(
             "phone_number": client.phone_number
         }
     )
-    return await dao.appointment.create(
+    next_appointment = await dao.appointment.create(
         appointment=appointment,
         branch_id=employee.branch.id,
         employee_id=employee.id
     )
+    await dao.client.update_appointment(
+        client_id=client.id,
+        employee_id=employee.id,
+        next_appointment_id=next_appointment.id,
+    )
+    return next_appointment
 
 
 @router.get(

@@ -67,6 +67,18 @@ class ClientDAO(BaseDAO[Client]):
         if client is not None:
             return dto.Client.from_orm(client)
 
+    async def update_appointment(self, client_id: int, employee_id: int, next_appointment_id: int) -> dto.Client:
+        result = await self.session.execute(
+            update(Client).where(
+                Client.id == client_id,
+                Client.employee_id == employee_id
+            )
+            .values(next_appointment_id=next_appointment_id)
+            .returning(Client)
+        )
+        await self.session.commit()
+        return dto.Client.model_validate(result.scalar())
+
     async def update_client(self, client_id: int, employee_id: int, client: schems.Client) -> dto.Client:
         result = await self.session.execute(
             update(Client).where(
