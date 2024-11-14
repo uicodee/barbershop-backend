@@ -9,5 +9,5 @@ class Client(BaseModelWithDateTime):
     first_name: str = Field(alias="firstName")
     last_name: str | None = Field(default=None, alias="lastName")
     phone_number: str = Field(alias="phoneNumber")
-    period: int = Field(default=30)
+    period: int = Field()
     next_appointment: Appointment | None = Field(default=None, alias="nextAppointment")
