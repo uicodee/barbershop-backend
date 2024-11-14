@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-from sqlalchemy import String, ForeignKey
+from sqlalchemy import String, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.infrastructure.database.models import BaseModel
@@ -17,17 +17,17 @@ class Client(BaseModel):
 
     branch_id: Mapped[int] = mapped_column(ForeignKey("branch.id", ondelete="CASCADE"))
     employee_id: Mapped[int] = mapped_column(ForeignKey("employee.id", ondelete="CASCADE"))
+    period: Mapped[int] = mapped_column(Integer, default=30)
 
     next_appointment_id: Mapped[int] = mapped_column(
         ForeignKey("appointment.id", ondelete="SET NULL"),
         nullable=True
     )
 
-    # Modify this relationship to specify it's a one-to-one
     next_appointment: Mapped["Appointment"] = relationship(
         "Appointment",
         foreign_keys="Client.next_appointment_id",
-        uselist=False,  # This makes it one-to-one
-        post_update=True,  # This helps prevent circular dependency issues
+        uselist=False,
+        post_update=True,
         lazy="selectin"
     )

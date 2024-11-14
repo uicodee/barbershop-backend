@@ -79,6 +79,19 @@ class ClientDAO(BaseDAO[Client]):
         await self.session.commit()
         return dto.Client.model_validate(result.scalar())
 
+    async def update_client_period(self, client_id: int, employee_id: int, branch_id: int, period: int) -> dto.Client:
+        result = await self.session.execute(
+            update(Client).where(
+                Client.id == client_id,
+                Client.employee_id == employee_id,
+                Client.branch_id == branch_id
+            )
+            .values(period=period)
+            .returning(Client)
+        )
+        await self.session.commit()
+        return dto.Client.model_validate(result.scalar())
+
     async def update_client(self, client_id: int, employee_id: int, client: schems.Client) -> dto.Client:
         result = await self.session.execute(
             update(Client).where(

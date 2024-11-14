@@ -36,6 +36,13 @@ async def create_appointment(
             detail="Client not found",
         )
     appointment_date = datetime.strptime(appointment.appointment_date, "%d.%m.%Y %H:%M").astimezone(timezone('UTC'))
+    difference = appointment_date - datetime.now(timezone('UTC'))
+    await dao.client.update_client_period(
+        client_id=client.id,
+        employee_id=employee.id,
+        branch_id=employee.branch.id,
+        period=difference.days
+    )
     next_appointment = await dao.appointment.create(
         appointment=appointment,
         branch_id=employee.branch.id,
@@ -52,7 +59,7 @@ async def create_appointment(
     scheduler.add_job(
         check_schedule,
         "date",
-        run_date=appointment_date + timedelta(hours=1),
+        run_date=appointment_date + timedelta(days=1),
         kwargs={
             "appointment_id": next_appointment.id,
             "branch_id": employee.branch.id,
