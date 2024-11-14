@@ -12,11 +12,17 @@ class Appointment(BaseModel):
         if isinstance(value, str):
             try:
                 date = datetime.strptime(value, "%d.%m.%Y %H:%M")
-                if date < datetime.now():
-                    raise ValueError("Date should be in the future")
+                cls.check_future_date(date)
+                return date
             except ValueError:
                 raise ValueError("Incorrect date format, should be 'DD.MM.YYYY HH:MM'")
         return value
+
+    @staticmethod
+    def check_future_date(date: datetime):
+        current_time = datetime.now()
+        if date <= current_time:
+            raise ValueError(f"Date should be in the future. Current time: {current_time.strftime('%d.%m.%Y %H:%M')}")
 
 
 class UpdateAppointment(BaseModel):
