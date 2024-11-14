@@ -13,7 +13,6 @@ class Appointment(BaseModel):
             try:
                 date = datetime.strptime(value, "%d.%m.%Y %H:%M")
                 cls.check_future_date(date)
-                return date
             except ValueError:
                 raise ValueError("Incorrect date format, should be 'DD.MM.YYYY HH:MM'")
         return value
