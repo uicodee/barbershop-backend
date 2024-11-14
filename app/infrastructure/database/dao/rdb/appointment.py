@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from pydantic import TypeAdapter
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update, delete, desc, asc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import dto
@@ -32,10 +32,15 @@ class AppointmentDAO(BaseDAO[Appointment]):
         return dto.Appointment.from_orm(appointment)
 
     async def get_all(self, branch_id: int, employee_id: int) -> list[dto.Appointment]:
-        result = await self.session.execute(select(Appointment).where(
-            Appointment.branch_id == branch_id,
-            Appointment.employee_id == employee_id
-        ))
+        result = await self.session.execute(
+            select(Appointment)
+            .where(
+                Appointment.branch_id == branch_id,
+                Appointment.employee_id == employee_id
+            )
+            .order_by(asc(Appointment.appointment_date), desc(Appointment.created_at))
+        )
+
         adapter = TypeAdapter(list[dto.Appointment])
         return adapter.validate_python(result.scalars().all())
 
