@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from pytz import timezone
 from apscheduler_di import ContextSchedulerDecorator
@@ -8,7 +8,7 @@ from pydantic import PositiveInt
 from app import dto
 from app.api import schems
 from app.api.dependencies import dao_provider, get_employee, get_scheduler
-from app.domain.schedule import send_notification
+from app.domain.schedule import send_notification, check_schedule
 from app.infrastructure.database import HolderDao
 
 router = APIRouter(prefix="/appointment")
@@ -36,6 +36,11 @@ async def create_appointment(
             detail="Client not found",
         )
     appointment_date = datetime.strptime(appointment.appointment_date, "%d.%m.%Y %H:%M").astimezone(timezone('UTC'))
+    next_appointment = await dao.appointment.create(
+        appointment=appointment,
+        branch_id=employee.branch.id,
+        employee_id=employee.id
+    )
     scheduler.add_job(
         send_notification,
         "date",
@@ -44,10 +49,15 @@ async def create_appointment(
             "phone_number": client.phone_number
         }
     )
-    next_appointment = await dao.appointment.create(
-        appointment=appointment,
-        branch_id=employee.branch.id,
-        employee_id=employee.id
+    scheduler.add_job(
+        check_schedule,
+        "date",
+        run_date=appointment_date + timedelta(hours=1),
+        kwargs={
+            "appointment_id": next_appointment.id,
+            "branch_id": employee.branch.id,
+            "employee_id": employee.id,
+        }
     )
     await dao.client.update_appointment(
         client_id=client.id,
