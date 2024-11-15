@@ -11,24 +11,15 @@ class SuperuserDAO(BaseDAO[Superuser]):
         super().__init__(Superuser, session)
 
     async def create(
-            self,
-            full_name: str,
-            username: str,
-            password: str
+        self, full_name: str, username: str, password: str
     ) -> dto.Superuser:
-        superuser = Superuser(
-            full_name=full_name,
-            username=username,
-            password=password
-        )
+        superuser = Superuser(full_name=full_name, username=username, password=password)
         self.session.add(superuser)
         await self.session.commit()
         return dto.Superuser.from_orm(superuser)
 
     async def get_superuser(
-            self,
-            username: str,
-            with_password: bool = False
+        self, username: str, with_password: bool = False
     ) -> dto.Superuser | dto.SuperuserWithPassword:
         result = await self.session.execute(
             select(Superuser).where(Superuser.username == username)

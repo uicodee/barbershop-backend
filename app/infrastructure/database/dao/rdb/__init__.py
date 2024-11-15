@@ -4,3 +4,4 @@ from .client import ClientDAO
 from .superuser import SuperuserDAO
 from .branch import BranchDAO
 from .appointment import AppointmentDAO
+from .message_template import MessageTemplateDAO

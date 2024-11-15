@@ -5,13 +5,14 @@ Revises: fa2ef87b87fd
 Create Date: 2024-11-10 11:17:56.204472
 
 """
+
 from alembic import op
 import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'fb472a69c9eb'
-down_revision = 'fa2ef87b87fd'
+revision = "fb472a69c9eb"
+down_revision = "fa2ef87b87fd"
 branch_labels = None
 depends_on = None
 

@@ -12,9 +12,7 @@ class Base(PydanticBaseModel):
     class Config:
         from_attributes = True
         populate_by_name = True
-        json_encoders = {
-            datetime: serialize_time
-        }
+        json_encoders = {datetime: serialize_time}
 
 
 class BaseModel(Base):

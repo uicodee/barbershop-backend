@@ -15,17 +15,17 @@ class Appointment(BaseModel):
 
     client_id: Mapped[int] = mapped_column(ForeignKey("client.id", ondelete="CASCADE"))
     branch_id: Mapped[int] = mapped_column(ForeignKey("branch.id", ondelete="CASCADE"))
-    employee_id: Mapped[int] = mapped_column(ForeignKey("employee.id", ondelete="CASCADE"))
+    employee_id: Mapped[int] = mapped_column(
+        ForeignKey("employee.id", ondelete="CASCADE")
+    )
 
     appointment_date: Mapped[datetime] = mapped_column(DateTime(True))
 
     status: Mapped[dto.AppointmentStatus] = mapped_column(
-        Enum(dto.AppointmentStatus),
-        default=dto.AppointmentStatus.SCHEDULED
+        Enum(dto.AppointmentStatus), default=dto.AppointmentStatus.SCHEDULED
     )
 
     # Remove the back_populates here since we'll handle it from the Client side
     client: Mapped["Client"] = relationship(
-        "Client",
-        foreign_keys="Appointment.client_id"
+        "Client", foreign_keys="Appointment.client_id"
     )

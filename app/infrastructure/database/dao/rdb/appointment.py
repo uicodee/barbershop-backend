@@ -15,17 +15,15 @@ class AppointmentDAO(BaseDAO[Appointment]):
         super().__init__(Appointment, session)
 
     async def create(
-            self,
-            appointment: schems.Appointment,
-            branch_id: int,
-            employee_id: int
+        self, appointment: schems.Appointment, branch_id: int, employee_id: int
     ) -> dto.Appointment:
         appointment = Appointment(
             client_id=appointment.client_id,
-            appointment_date=datetime.strptime(appointment.appointment_date, "%d.%m.%Y %H:%M").replace(
-                tzinfo=timezone.utc),
+            appointment_date=datetime.strptime(
+                appointment.appointment_date, "%d.%m.%Y %H:%M"
+            ).replace(tzinfo=timezone.utc),
             branch_id=branch_id,
-            employee_id=employee_id
+            employee_id=employee_id,
         )
         self.session.add(appointment)
         await self.session.commit()
@@ -36,7 +34,7 @@ class AppointmentDAO(BaseDAO[Appointment]):
             select(Appointment)
             .where(
                 Appointment.branch_id == branch_id,
-                Appointment.employee_id == employee_id
+                Appointment.employee_id == employee_id,
             )
             .order_by(asc(Appointment.appointment_date), desc(Appointment.created_at))
         )
@@ -45,69 +43,70 @@ class AppointmentDAO(BaseDAO[Appointment]):
         return adapter.validate_python(result.scalars().all())
 
     async def get_one(
-            self,
-            appointment_id: int,
-            branch_id: int,
-            employee_id: int
+        self, appointment_id: int, branch_id: int, employee_id: int
     ) -> dto.Appointment:
         result = await self.session.execute(
             select(Appointment).where(
                 Appointment.id == appointment_id,
                 Appointment.branch_id == branch_id,
-                Appointment.employee_id == employee_id
+                Appointment.employee_id == employee_id,
             )
         )
         appointment = result.scalar()
         if appointment is not None:
             return dto.Appointment.from_orm(appointment)
 
-    async def get_client_all(self, client_id: int, branch_id: int, employee_id: int) -> list[dto.Appointment]:
-        result = await self.session.execute(select(Appointment).where(
-            Appointment.client_id == client_id,
-            Appointment.branch_id == branch_id,
-            Appointment.employee_id == employee_id,
-        ))
+    async def get_client_all(
+        self, client_id: int, branch_id: int, employee_id: int
+    ) -> list[dto.Appointment]:
+        result = await self.session.execute(
+            select(Appointment).where(
+                Appointment.client_id == client_id,
+                Appointment.branch_id == branch_id,
+                Appointment.employee_id == employee_id,
+            )
+        )
         adapter = TypeAdapter(list[dto.Appointment])
         return adapter.validate_python(result.scalars().all())
 
     async def update_appointment_status(
-            self,
-            employee_id: int,
-            branch_id: int,
-            appointment_id: int,
-            status: dto.AppointmentStatus
+        self,
+        employee_id: int,
+        branch_id: int,
+        appointment_id: int,
+        status: dto.AppointmentStatus,
     ) -> dto.Appointment:
         result = await self.session.execute(
-            update(Appointment).where(
+            update(Appointment)
+            .where(
                 Appointment.id == appointment_id,
                 Appointment.employee_id == employee_id,
                 Appointment.branch_id == branch_id,
             )
-            .values(
-                status=status
-            )
+            .values(status=status)
             .returning(Appointment)
         )
         await self.session.commit()
         return dto.Appointment.model_validate(result.scalar())
 
     async def update_appointment(
-            self,
-            employee_id: int,
-            branch_id: int,
-            appointment_id: int,
-            appointment: schems.UpdateAppointment
+        self,
+        employee_id: int,
+        branch_id: int,
+        appointment_id: int,
+        appointment: schems.UpdateAppointment,
     ) -> dto.Appointment:
         result = await self.session.execute(
-            update(Appointment).where(
+            update(Appointment)
+            .where(
                 Appointment.id == appointment_id,
                 Appointment.employee_id == employee_id,
                 Appointment.branch_id == branch_id,
             )
             .values(
-                appointment_date=datetime.strptime(appointment.appointment_date, "%d.%m.%Y %H:%M").replace(
-                    tzinfo=timezone.utc
-                )
+                appointment_date=datetime.strptime(
+                    appointment.appointment_date, "%d.%m.%Y %H:%M"
+                ).replace(tzinfo=timezone.utc)
             )
             .returning(Appointment)
         )
@@ -115,11 +114,7 @@ class AppointmentDAO(BaseDAO[Appointment]):
         return dto.Appointment.model_validate(result.scalar())
 
     async def delete_appointment(
-            self,
-            client_id: int,
-            branch_id: int,
-            employee_id: int,
-            appointment_id: int
+        self, client_id: int, branch_id: int, employee_id: int, appointment_id: int
     ) -> None:
         await self.session.execute(
             delete(Appointment).where(

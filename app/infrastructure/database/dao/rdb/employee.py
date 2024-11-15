@@ -13,24 +13,24 @@ class EmployeeDAO(BaseDAO[Employee]):
         super().__init__(Employee, session)
 
     async def add_employee(
-            self,
-            employee: schems.Employee,
-            password: str
+        self, employee: schems.Employee, password: str
     ) -> dto.Employee:
         employee = Employee(
             full_name=employee.full_name,
             email=employee.email,
             password=password,
-            branch_id=employee.branch_id
+            branch_id=employee.branch_id,
         )
         self.session.add(employee)
         await self.session.commit()
-        result = await self.session.execute(select(Employee).where(Employee.id == employee.id))
+        result = await self.session.execute(
+            select(Employee).where(Employee.id == employee.id)
+        )
         return dto.Employee.from_orm(result.scalar())
 
     async def get_one(
-            self,
-            employee_id: int,
+        self,
+        employee_id: int,
     ) -> dto.Employee | dto.EmployeeWithPassword:
         result = await self.session.execute(
             select(Employee).where(Employee.id == employee_id)
@@ -40,9 +40,7 @@ class EmployeeDAO(BaseDAO[Employee]):
             return dto.Employee.from_orm(employee)
 
     async def get_employee(
-            self,
-            email: str,
-            with_password: bool = False
+        self, email: str, with_password: bool = False
     ) -> dto.Employee | dto.EmployeeWithPassword:
         result = await self.session.execute(
             select(Employee).where(Employee.email == email)
@@ -60,17 +58,18 @@ class EmployeeDAO(BaseDAO[Employee]):
         return adapter.validate_python(result.scalars().all())
 
     async def get_all_by_branch(self, branch_id: int) -> list[dto.Employee]:
-        result = await self.session.execute(select(Employee).where(
-            Employee.branch_id == branch_id
-        ))
+        result = await self.session.execute(
+            select(Employee).where(Employee.branch_id == branch_id)
+        )
         adapter = TypeAdapter(list[dto.Employee])
         return adapter.validate_python(result.scalars().all())
 
-    async def update_employee(self, employee_id: int, employee: schems.Employee) -> dto.Employee:
+    async def update_employee(
+        self, employee_id: int, employee: schems.Employee
+    ) -> dto.Employee:
         result = await self.session.execute(
-            update(Employee).where(
-                Employee.id == employee_id
-            )
+            update(Employee)
+            .where(Employee.id == employee_id)
             .values(**employee.dict())
             .returning(Employee)
         )
@@ -78,7 +77,9 @@ class EmployeeDAO(BaseDAO[Employee]):
         return dto.Employee.model_validate(result.scalar())
 
     async def delete_employee(self, employee_id: int) -> None:
-        await self.session.execute(delete(Employee).where(
-            Employee.id == employee_id,
-        ))
+        await self.session.execute(
+            delete(Employee).where(
+                Employee.id == employee_id,
+            )
+        )
         await self.session.commit()

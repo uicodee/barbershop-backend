@@ -6,3 +6,4 @@ from .appointment import Appointment
 from .sms_reminder import SMSReminder
 from .superuser import Superuser
 from .client_appointment import ClientAppointment
+from .message_template import MessageTemplate

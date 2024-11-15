@@ -34,9 +34,9 @@ class AuthProvider:
         self.cookie_domain = "api.example.com"
 
     def verify_password(
-            self,
-            plain_password: str,
-            hashed_password: str,
+        self,
+        plain_password: str,
+        hashed_password: str,
     ) -> bool:
         return self.pwd_context.verify(
             plain_password,
@@ -47,31 +47,27 @@ class AuthProvider:
         return self.pwd_context.hash(password)
 
     async def authenticate_superuser(
-            self,
-            username: str,
-            password: str,
-            dao: HolderDao
+        self, username: str, password: str, dao: HolderDao
     ) -> dto.Superuser:
         http_status_401 = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-        superuser = await dao.superuser.get_superuser(username=username, with_password=True)
+        superuser = await dao.superuser.get_superuser(
+            username=username, with_password=True
+        )
         if superuser is None:
             raise http_status_401
         if not self.verify_password(
-                password,
-                superuser.password,
+            password,
+            superuser.password,
         ):
             raise http_status_401
         return superuser
 
     async def authenticate_employee(
-            self,
-            email: str,
-            password: str,
-            dao: HolderDao
+        self, email: str, password: str, dao: HolderDao
     ) -> dto.Employee:
         http_status_401 = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -82,16 +78,16 @@ class AuthProvider:
         if employee is None:
             raise http_status_401
         if not self.verify_password(
-                password,
-                employee.password,
+            password,
+            employee.password,
         ):
             raise http_status_401
         return employee
 
     def create_token(
-            self,
-            data: dict,
-            expires_delta: timedelta,
+        self,
+        data: dict,
+        expires_delta: timedelta,
     ) -> str:
         to_encode = data.copy()
         expire = datetime.now(tz=pytz.timezone("Asia/Tashkent")) + expires_delta
@@ -104,11 +100,11 @@ class AuthProvider:
         return encoded_jwt
 
     def create_tokens(
-            self,
-            access_token_payload: dict,
-            refresh_token_payload: dict,
-            access_expires_delta: timedelta,
-            refresh_expires_delta: timedelta,
+        self,
+        access_token_payload: dict,
+        refresh_token_payload: dict,
+        access_expires_delta: timedelta,
+        refresh_expires_delta: timedelta,
     ) -> dto.Token:
         access_token = self.create_token(
             data=access_token_payload, expires_delta=access_expires_delta
@@ -132,9 +128,9 @@ class AuthProvider:
         )
 
     async def get_current_superuser(
-            self,
-            token: str = Depends(oauth2_scheme),
-            dao: HolderDao = Depends(dao_provider),
+        self,
+        token: str = Depends(oauth2_scheme),
+        dao: HolderDao = Depends(dao_provider),
     ) -> dto.Superuser:
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -158,9 +154,9 @@ class AuthProvider:
         return superuser
 
     async def get_current_employee(
-            self,
-            token: str = Depends(oauth2_scheme),
-            dao: HolderDao = Depends(dao_provider),
+        self,
+        token: str = Depends(oauth2_scheme),
+        dao: HolderDao = Depends(dao_provider),
     ) -> dto.Employee:
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -184,9 +180,7 @@ class AuthProvider:
         return employee
 
     async def refresh_access_token(
-            self,
-            refresh_token: str,
-            dao: HolderDao = Depends(dao_provider)
+        self, refresh_token: str, dao: HolderDao = Depends(dao_provider)
     ) -> dto.Token:
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -214,8 +208,7 @@ class AuthProvider:
 
         new_access_token_payload = {"sub": sub}
         new_access_token = self.create_token(
-            data=new_access_token_payload,
-            expires_delta=self.access_token_expire
+            data=new_access_token_payload, expires_delta=self.access_token_expire
         )
 
         return dto.Token(

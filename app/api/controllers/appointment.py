@@ -20,41 +20,39 @@ router = APIRouter(prefix="/appointment")
     response_model=dto.Appointment,
 )
 async def create_appointment(
-        appointment: schems.Appointment,
-        employee: dto.Employee = Depends(get_employee),
-        scheduler: ContextSchedulerDecorator = Depends(get_scheduler),
-        dao: HolderDao = Depends(dao_provider)
+    appointment: schems.Appointment,
+    employee: dto.Employee = Depends(get_employee),
+    scheduler: ContextSchedulerDecorator = Depends(get_scheduler),
+    dao: HolderDao = Depends(dao_provider),
 ) -> dto.Appointment:
     client = await dao.client.get_client(
         client_id=appointment.client_id,
         branch_id=employee.branch.id,
-        employee_id=employee.id
+        employee_id=employee.id,
     )
     if client is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Client not found",
         )
-    appointment_date = datetime.strptime(appointment.appointment_date, "%d.%m.%Y %H:%M").astimezone(timezone('UTC'))
-    difference = appointment_date - datetime.now(timezone('UTC'))
+    appointment_date = datetime.strptime(
+        appointment.appointment_date, "%d.%m.%Y %H:%M"
+    ).astimezone(timezone("UTC"))
+    difference = appointment_date - datetime.now(timezone("UTC"))
     await dao.client.update_client_period(
         client_id=client.id,
         employee_id=employee.id,
         branch_id=employee.branch.id,
-        period=difference.days
+        period=difference.days,
     )
     next_appointment = await dao.appointment.create(
-        appointment=appointment,
-        branch_id=employee.branch.id,
-        employee_id=employee.id
+        appointment=appointment, branch_id=employee.branch.id, employee_id=employee.id
     )
     scheduler.add_job(
         send_notification,
         "date",
         run_date=appointment_date,
-        kwargs={
-            "phone_number": client.phone_number
-        }
+        kwargs={"phone_number": client.phone_number},
     )
     scheduler.add_job(
         check_schedule,
@@ -64,7 +62,7 @@ async def create_appointment(
             "appointment_id": next_appointment.id,
             "branch_id": employee.branch.id,
             "employee_id": employee.id,
-        }
+        },
     )
     await dao.client.update_appointment(
         client_id=client.id,
@@ -80,12 +78,11 @@ async def create_appointment(
     response_model=list[dto.Appointment],
 )
 async def get_appointments(
-        employee: dto.Employee = Depends(get_employee),
-        dao: HolderDao = Depends(dao_provider),
+    employee: dto.Employee = Depends(get_employee),
+    dao: HolderDao = Depends(dao_provider),
 ) -> list[dto.Appointment]:
-    return await dao.appointment.get_all(
-        branch_id=employee.branch.id,
-        employee_id=employee.id
+    return await dao.appointment.get_all_by_branch(
+        branch_id=employee.branch.id, employee_id=employee.id
     )
 
 
@@ -95,40 +92,39 @@ async def get_appointments(
     response_model=list[dto.Appointment],
 )
 async def get_client_appointments(
-        client_id: PositiveInt = Path(),
-        employee: dto.Employee = Depends(get_employee),
-        dao: HolderDao = Depends(dao_provider)
+    client_id: PositiveInt = Path(),
+    employee: dto.Employee = Depends(get_employee),
+    dao: HolderDao = Depends(dao_provider),
 ) -> list[dto.Appointment]:
-    if await dao.client.get_client(
-            client_id=client_id,
-            employee_id=employee.id,
-            branch_id=employee.branch.id
-    ) is None:
+    if (
+        await dao.client.get_client(
+            client_id=client_id, employee_id=employee.id, branch_id=employee.branch.id
+        )
+        is None
+    ):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Client not found",
         )
     return await dao.appointment.get_client_all(
-        client_id=client_id,
-        branch_id=employee.branch.id,
-        employee_id=employee.id
+        client_id=client_id, branch_id=employee.branch.id, employee_id=employee.id
     )
 
 
 @router.get(
     path="/{appointment_id}",
     description="Get appointment",
-    response_model=dto.Appointment
+    response_model=dto.Appointment,
 )
 async def get_appointment(
-        appointment_id: PositiveInt = Path(),
-        employee: dto.Employee = Depends(get_employee),
-        dao: HolderDao = Depends(dao_provider)
+    appointment_id: PositiveInt = Path(),
+    employee: dto.Employee = Depends(get_employee),
+    dao: HolderDao = Depends(dao_provider),
 ) -> dto.Appointment:
     appointment = await dao.appointment.get_one(
         appointment_id=appointment_id,
         branch_id=employee.branch.id,
-        employee_id=employee.id
+        employee_id=employee.id,
     )
     if appointment is None:
         raise HTTPException(
@@ -144,15 +140,15 @@ async def get_appointment(
     response_model=dto.Appointment,
 )
 async def update_appointment(
-        appointment: schems.Appointment,
-        appointment_id: PositiveInt = Path(),
-        employee: dto.Employee = Depends(get_employee),
-        dao: HolderDao = Depends(dao_provider)
+    appointment: schems.Appointment,
+    appointment_id: PositiveInt = Path(),
+    employee: dto.Employee = Depends(get_employee),
+    dao: HolderDao = Depends(dao_provider),
 ) -> dto.Appointment:
     current_appointment = await dao.appointment.get_one(
         appointment_id=appointment_id,
         branch_id=employee.branch.id,
-        employee_id=employee.id
+        employee_id=employee.id,
     )
     if current_appointment is None:
         raise HTTPException(
@@ -173,16 +169,16 @@ async def update_appointment(
     response_model=dto.Appointment,
 )
 async def change_status(
-        appointment_id: PositiveInt = Path(),
-        status: dto.AppointmentStatus = Query(),
-        employee: dto.Employee = Depends(get_employee),
-        dao: HolderDao = Depends(dao_provider)
+    appointment_id: PositiveInt = Path(),
+    status: dto.AppointmentStatus = Query(),
+    employee: dto.Employee = Depends(get_employee),
+    dao: HolderDao = Depends(dao_provider),
 ) -> dto.Appointment:
     return await dao.appointment.update_appointment_status(
         appointment_id=appointment_id,
         employee_id=employee.id,
         branch_id=employee.branch.id,
-        status=status
+        status=status,
     )
 
 
@@ -191,14 +187,14 @@ async def change_status(
     description="Delete appointment",
 )
 async def delete_appointment(
-        appointment_id: PositiveInt = Path(),
-        employee: dto.Employee = Depends(get_employee),
-        dao: HolderDao = Depends(dao_provider)
+    appointment_id: PositiveInt = Path(),
+    employee: dto.Employee = Depends(get_employee),
+    dao: HolderDao = Depends(dao_provider),
 ):
     appointment = await dao.appointment.get_one(
         appointment_id=appointment_id,
         branch_id=employee.branch.id,
-        employee_id=employee.id
+        employee_id=employee.id,
     )
     if appointment is None:
         raise HTTPException(

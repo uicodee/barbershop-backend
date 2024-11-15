@@ -11,6 +11,8 @@ class SMSReminder(BaseModel):
 
     __tablename__ = "sms_reminder"
 
-    appointment_id: Mapped[int] = mapped_column(ForeignKey("appointment.id", ondelete="CASCADE"))
+    appointment_id: Mapped[int] = mapped_column(
+        ForeignKey("appointment.id", ondelete="CASCADE")
+    )
     sent_at: Mapped[datetime] = mapped_column(DateTime)
     status: Mapped[dto.ReminderStatus] = mapped_column(Enum(dto.ReminderStatus))

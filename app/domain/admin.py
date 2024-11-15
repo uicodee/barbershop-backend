@@ -22,7 +22,7 @@ class Creator:
                 await dao.superuser.create(
                     full_name=full_name,
                     username=username,
-                    password=self.auth_provider.get_password_hash(password=password)
+                    password=self.auth_provider.get_password_hash(password=password),
                 )
 
     async def create_all(self):

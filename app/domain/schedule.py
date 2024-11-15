@@ -15,22 +15,25 @@ async def send_notification(phone_number: str):
         token=token.data.token,
         phone_number=phone_number,
         message="Bu Eskiz dan test",
-        from_="Barbershop"
+        from_="Barbershop",
     )
 
 
-async def check_schedule(pool: sessionmaker, appointment_id: int, branch_id: int, employee_id: int):
+async def check_schedule(
+    pool: sessionmaker, appointment_id: int, branch_id: int, employee_id: int
+):
     async with pool() as session:
         dao = HolderDao(session=session)
         appointment = await dao.appointment.get_one(
-            appointment_id=appointment_id,
-            branch_id=branch_id,
-            employee_id=employee_id
+            appointment_id=appointment_id, branch_id=branch_id, employee_id=employee_id
         )
-        if appointment is not None and appointment.status == AppointmentStatus.SCHEDULED:
+        if (
+            appointment is not None
+            and appointment.status == AppointmentStatus.SCHEDULED
+        ):
             await dao.appointment.update_appointment_status(
                 appointment_id=appointment_id,
                 branch_id=branch_id,
                 employee_id=employee_id,
-                status=AppointmentStatus.MISSED
+                status=AppointmentStatus.MISSED,
             )

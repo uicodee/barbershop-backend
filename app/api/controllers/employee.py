@@ -16,45 +16,36 @@ router = APIRouter(prefix="/employee")
     response_model=dto.Employee,
 )
 async def create_employee(
-        employee: schems.RegisterEmployee,
-        dao: HolderDao = Depends(dao_provider),
-        settings: Settings = Depends(get_settings)
+    employee: schems.RegisterEmployee,
+    dao: HolderDao = Depends(dao_provider),
+    settings: Settings = Depends(get_settings),
 ) -> dto.Employee:
     auth = AuthProvider(settings=settings)
     if await dao.employee.get_employee(email=employee.email) is not None:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Employee already exists"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Employee already exists"
         )
     return await dao.employee.add_employee(
-        employee=employee,
-        password=auth.get_password_hash(password=employee.password)
+        employee=employee, password=auth.get_password_hash(password=employee.password)
     )
 
 
-@router.get(
-    path="/",
-    description="Get employees",
-    response_model=list[dto.Employee]
-)
-async def get_employees(
-        dao: HolderDao = Depends(dao_provider)
-) -> list[dto.Employee]:
-    return await dao.employee.get_all()
+@router.get(path="/", description="Get employees", response_model=list[dto.Employee])
+async def get_employees(dao: HolderDao = Depends(dao_provider)) -> list[dto.Employee]:
+    return await dao.employee.get_all_by_branch()
 
 
 @router.get(
-    path="/{employee_id}",
-    description="Get employee",
-    response_model=dto.Employee
+    path="/{employee_id}", description="Get employee", response_model=dto.Employee
 )
 async def get_employee(
-        employee_id: PositiveInt = Path(),
-        dao: HolderDao = Depends(dao_provider)
+    employee_id: PositiveInt = Path(), dao: HolderDao = Depends(dao_provider)
 ) -> dto.Employee:
     employee = await dao.employee.get_one(employee_id=employee_id)
     if employee is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found"
+        )
     return employee
 
 
@@ -82,12 +73,13 @@ async def get_employee(
     description="Delete employee",
 )
 async def delete_employee(
-        employee_id: PositiveInt = Path(),
-        dao: HolderDao = Depends(dao_provider)
+    employee_id: PositiveInt = Path(), dao: HolderDao = Depends(dao_provider)
 ):
     employee = await dao.employee.get_one(employee_id=employee_id)
     if employee is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found"
+        )
     return await dao.employee.delete_employee(
         employee_id=employee_id,
     )

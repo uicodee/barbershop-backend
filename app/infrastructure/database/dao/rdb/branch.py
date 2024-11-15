@@ -12,10 +12,7 @@ class BranchDAO(BaseDAO[Branch]):
     def __init__(self, session: AsyncSession):
         super().__init__(Branch, session)
 
-    async def create(
-            self,
-            branch: schems.Branch
-    ) -> dto.Branch:
+    async def create(self, branch: schems.Branch) -> dto.Branch:
         branch = Branch(**branch.dict())
         self.session.add(branch)
         await self.session.commit()
@@ -27,19 +24,17 @@ class BranchDAO(BaseDAO[Branch]):
         return adapter.validate_python(result.scalars().all())
 
     async def get_by_name(
-            self,
-            name: str,
+        self,
+        name: str,
     ) -> dto.Branch:
-        result = await self.session.execute(
-            select(Branch).where(Branch.name == name)
-        )
+        result = await self.session.execute(select(Branch).where(Branch.name == name))
         branch = result.scalar()
         if branch is not None:
             return dto.Branch.from_orm(branch)
 
     async def get_branch(
-            self,
-            branch_id: int,
+        self,
+        branch_id: int,
     ) -> dto.Branch:
         result = await self.session.execute(
             select(Branch).where(Branch.id == branch_id)
@@ -50,7 +45,8 @@ class BranchDAO(BaseDAO[Branch]):
 
     async def update_branch(self, branch_id: int, branch: schems.Branch) -> dto.Branch:
         result = await self.session.execute(
-            update(Branch).where(Branch.id == branch_id)
+            update(Branch)
+            .where(Branch.id == branch_id)
             .values(**branch.dict())
             .returning(Branch)
         )

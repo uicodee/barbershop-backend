@@ -8,3 +8,4 @@ from .client import Client
 from .sms_reminder import Reminder
 from .superuser import Superuser, SuperuserWithPassword
 from .api import ApiLogin, ApiSend
+from .message_template import MessageTemplate
