@@ -3,4 +3,4 @@ from .appointment import Appointment, UpdateAppointment
 from .branch import Branch
 from .client import Client
 from .superuser import LoginSuperuser
-from .message_template import MessageTemplate
+from .message_template import MessageTemplate, DeleteMessageTemplate
