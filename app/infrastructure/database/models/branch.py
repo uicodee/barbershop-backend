@@ -7,6 +7,7 @@ from app.infrastructure.database.models import BaseModel
 
 if TYPE_CHECKING:
     from .employee import Employee
+    from .message_template import MessageTemplate
 
 
 class Branch(BaseModel):
@@ -16,3 +17,4 @@ class Branch(BaseModel):
     location: Mapped[str] = mapped_column(String)
 
     employees: Mapped[List["Employee"]] = relationship(back_populates="branch")
+    message_templates: Mapped[List["MessageTemplate"]] = relationship(back_populates="branch", lazy="selectin")
