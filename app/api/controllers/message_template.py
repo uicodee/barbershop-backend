@@ -110,7 +110,7 @@ async def update_template(
     dependencies=[Depends(get_superuser)],
 )
 async def delete_template(
-    message_template: schems.DeleteMessageTemplate = Path(),
+    message_template: schems.DeleteMessageTemplate,
     dao: HolderDao = Depends(dao_provider),
 ) -> None:
     msg_template = await dao.message_template.get_one(
