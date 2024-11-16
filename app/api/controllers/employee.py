@@ -32,7 +32,7 @@ async def create_employee(
 
 @router.get(path="/", description="Get employees", response_model=list[dto.Employee])
 async def get_employees(dao: HolderDao = Depends(dao_provider)) -> list[dto.Employee]:
-    return await dao.employee.get_all_by_branch()
+    return await dao.employee.get_all()
 
 
 @router.get(
