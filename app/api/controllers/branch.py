@@ -23,7 +23,7 @@ async def create_branch(
 
 @router.get(path="/", description="Get branches", response_model=list[dto.Branch])
 async def get_branches(dao: HolderDao = Depends(dao_provider)) -> list[dto.Branch]:
-    return await dao.branch.get_all_by_branch()
+    return await dao.branch.get_all()
 
 
 @router.get(
