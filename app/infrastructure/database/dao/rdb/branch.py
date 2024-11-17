@@ -16,7 +16,8 @@ class BranchDAO(BaseDAO[Branch]):
         branch = Branch(**branch.dict())
         self.session.add(branch)
         await self.session.commit()
-        return dto.Branch.from_orm(branch)
+        result = await self.session.execute(select(Branch).where(Branch.id == branch.id))
+        return dto.Branch.from_orm(result.scalar())
 
     async def get_all(self) -> list[dto.Branch]:
         result = await self.session.execute(select(Branch))
