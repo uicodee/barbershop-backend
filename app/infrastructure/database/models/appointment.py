@@ -18,6 +18,9 @@ class Appointment(BaseModel):
     employee_id: Mapped[int] = mapped_column(
         ForeignKey("employee.id", ondelete="CASCADE")
     )
+    message_template_id: Mapped[int] = mapped_column(
+        ForeignKey("message_template.id", ondelete="CASCADE")
+    )
 
     appointment_date: Mapped[datetime] = mapped_column(DateTime(True))
 
@@ -25,7 +28,6 @@ class Appointment(BaseModel):
         Enum(dto.AppointmentStatus), default=dto.AppointmentStatus.SCHEDULED
     )
 
-    # Remove the back_populates here since we'll handle it from the Client side
     client: Mapped["Client"] = relationship(
         "Client", foreign_keys="Appointment.client_id"
     )

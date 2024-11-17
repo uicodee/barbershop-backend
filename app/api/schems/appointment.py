@@ -5,6 +5,7 @@ from pydantic import Field, BaseModel, PositiveInt, field_validator
 
 class Appointment(BaseModel):
     client_id: PositiveInt = Field(alias="clientId")
+    message_template_id: PositiveInt = Field(alias="messageTemplateId")
     appointment_date: str = Field(alias="appointmentDate")
 
     @field_validator("appointment_date", mode="before")
@@ -19,6 +20,7 @@ class Appointment(BaseModel):
 
 class UpdateAppointment(BaseModel):
 
+    message_template_id: PositiveInt = Field(alias="messageTemplateId")
     appointment_date: str = Field(alias="appointmentDate")
 
     @field_validator("appointment_date", mode="before")

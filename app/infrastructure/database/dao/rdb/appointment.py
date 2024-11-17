@@ -24,6 +24,7 @@ class AppointmentDAO(BaseDAO[Appointment]):
             ).replace(tzinfo=timezone.utc),
             branch_id=branch_id,
             employee_id=employee_id,
+            message_template_id=appointment.message_template_id
         )
         self.session.add(appointment)
         await self.session.commit()
@@ -106,7 +107,8 @@ class AppointmentDAO(BaseDAO[Appointment]):
             .values(
                 appointment_date=datetime.strptime(
                     appointment.appointment_date, "%d.%m.%Y %H:%M"
-                ).replace(tzinfo=timezone.utc)
+                ).replace(tzinfo=timezone.utc),
+                message_template_id=appointment.message_template_id
             )
             .returning(Appointment)
         )
