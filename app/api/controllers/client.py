@@ -39,7 +39,7 @@ async def get_clients(
     employee: dto.Employee = Depends(get_employee),
     dao: HolderDao = Depends(dao_provider),
 ) -> list[dto.Client]:
-    return await dao.client.get_all_by_branch(
+    return await dao.client.get_all(
         branch_id=employee.branch.id, employee_id=employee.id
     )
 
